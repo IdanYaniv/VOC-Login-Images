@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ViaLogo } from "./components/via-logo";
-import { LivingServiceMap } from "./components/LivingServiceMap";
+import { ViaLogo } from "@/components/via-logo";
+import { LivingServiceMap } from "@/components/LivingServiceMap";
 import { Eye, EyeOff } from "lucide-react";
 
 function PasswordInput({
