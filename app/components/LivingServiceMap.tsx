@@ -20,9 +20,9 @@ const HOVER_OPACITY_BOOST = 0.2;
 const HOVER_STROKE_BOOST = 0.8;
 
 // Rounded rectangle indicator dimensions
-const INDICATOR_WIDTH = 8;
-const INDICATOR_HEIGHT = 4;
-const INDICATOR_RX = 1.5;
+const INDICATOR_WIDTH = 8 * 1.12;
+const INDICATOR_HEIGHT = 4 * 1.12;
+const INDICATOR_RX = 1.5 * 1.12;
 
 export function LivingServiceMap() {
   const svgRef = useRef<SVGSVGElement>(null);
