@@ -50,9 +50,9 @@ export default function LoginPage() {
   return (
     <div className="flex h-screen w-screen bg-[#F7F8FA]">
       {/* Left Panel - Fixed 540px */}
-      <div className="flex w-[540px] shrink-0 flex-col border-r border-[#C7CAD0] bg-white px-[66px] py-16">
+      <div className="flex w-[540px] shrink-0 flex-col border-r border-[#C7CAD0] bg-white px-[94px] py-16">
         {/* Welcome: Logo + Heading */}
-        <div className="flex w-[308px] flex-col gap-14">
+        <div className="flex w-full flex-col gap-14">
           <ViaLogo />
           <h1 className="text-[36px] font-bold leading-[44px]">
             <span className="text-[#004080]">Welcome to</span>
@@ -62,7 +62,7 @@ export default function LoginPage() {
         </div>
 
         {/* Content: Actions at top, footer links at bottom */}
-        <div className="mt-14 flex w-[352px] flex-1 flex-col justify-between">
+        <div className="mt-14 flex w-full flex-1 flex-col justify-between">
           {/* Actions */}
           <div className="flex flex-col gap-4">
             <PasswordInput

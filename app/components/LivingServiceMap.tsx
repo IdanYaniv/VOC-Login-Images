@@ -210,7 +210,7 @@ export function LivingServiceMap() {
   }, [prefersReducedMotion]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#E1EFFF]">
+    <div className="relative h-full w-full overflow-hidden bg-[#F7F8FA]">
       {/* Static map background (full Map.svg rendered as image) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
