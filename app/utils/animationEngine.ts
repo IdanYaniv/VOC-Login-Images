@@ -5,6 +5,7 @@
  *   cruising → decelerating → stopped → accelerating → cruising
  *
  * Smooth easing between states. Speed jitter for organic feel.
+ * Angle smoothing prevents rotation jumps at sharp path corners.
  */
 
 export type MotionState = 'cruising' | 'decelerating' | 'stopped' | 'accelerating';
@@ -19,7 +20,7 @@ export interface IndicatorState {
   opacity: number;
   x: number;
   y: number;
-  angle: number; // rotation angle in degrees (for rounded rect orientation)
+  angle: number; // smoothed rotation angle in degrees
 
   // State machine
   motionState: MotionState;
@@ -36,11 +37,13 @@ export interface IndicatorState {
 }
 
 // Timing constants
-const DECEL_DURATION = 2.0; // seconds to decelerate
-const ACCEL_DURATION = 1.5; // seconds to accelerate
-const DECEL_ZONE = 0.04; // start decelerating 4% before stop node
-const STOP_MIN = 2.0;
-const STOP_MAX = 4.0;
+const DECEL_DURATION = 2.5; // seconds to decelerate (longer = smoother)
+const ACCEL_DURATION = 2.0; // seconds to accelerate (longer = smoother)
+const DECEL_ZONE = 0.08;    // start decelerating 8% before stop node (wider zone)
+const STOP_DURATIONS = [1.0, 1.5, 2.0]; // 3 fixed stop durations, max 2s
+
+// Angle smoothing — lerp factor (0 = no smoothing, 1 = instant snap)
+const ANGLE_SMOOTHING = 0.12;
 
 /**
  * Get a point at a given progress (0-1) along an SVG path element.
@@ -56,18 +59,33 @@ export function getPointOnPath(
 }
 
 /**
- * Get the tangent angle (in degrees) at a point on the path.
+ * Get the raw tangent angle (in degrees) at a point on the path.
  * Computed by sampling two close points and calculating the angle.
  */
-export function getTangentAngle(
+function getRawTangentAngle(
   pathEl: SVGPathElement,
   progress: number
 ): number {
   const length = pathEl.getTotalLength();
-  const epsilon = 0.002; // small step for tangent calculation
+  const epsilon = 0.005; // wider step for smoother tangent at corners
   const p1 = pathEl.getPointAtLength(Math.max(0, (progress - epsilon)) * length);
   const p2 = pathEl.getPointAtLength(Math.min(1, (progress + epsilon)) * length);
-  return Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+  // Guard against zero-length segments (would produce NaN)
+  if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) return 0;
+  return Math.atan2(dy, dx) * (180 / Math.PI);
+}
+
+/**
+ * Lerp between two angles, handling the 360° wraparound correctly.
+ */
+function lerpAngle(from: number, to: number, t: number): number {
+  let diff = to - from;
+  // Normalize to [-180, 180]
+  while (diff > 180) diff -= 360;
+  while (diff < -180) diff += 360;
+  return from + diff * t;
 }
 
 /**
@@ -159,6 +177,12 @@ export function updateIndicator(
           state.stateProgress = 0;
           break;
         }
+
+        // Skip stops that we've somehow passed (prevents stuck states)
+        if (distToStop < 0) {
+          state.currentStopIndex++;
+          break;
+        }
       }
 
       // Move forward
@@ -185,11 +209,8 @@ export function updateIndicator(
       if (state.stateProgress >= 1) {
         state.motionState = 'stopped';
         state.stateProgress = 0;
-        // Clamp to stop node position
-        if (state.currentStopIndex < state.stopNodes.length) {
-          state.progress = state.stopNodes[state.currentStopIndex];
-        }
-        state.stopDuration = STOP_MIN + Math.random() * (STOP_MAX - STOP_MIN);
+        // Don't snap — let the indicator stop wherever it naturally ended up
+        state.stopDuration = STOP_DURATIONS[Math.floor(Math.random() * STOP_DURATIONS.length)];
         state.stopTimer = 0;
       }
       break;
@@ -227,9 +248,12 @@ export function updateIndicator(
     }
   }
 
-  // Update position + angle
+  // Update position
   const point = getPointOnPath(pathEl, state.progress);
   state.x = point.x;
   state.y = point.y;
-  state.angle = getTangentAngle(pathEl, state.progress);
+
+  // Smooth angle — lerp toward raw tangent to prevent rotation jumps
+  const rawAngle = getRawTangentAngle(pathEl, state.progress);
+  state.angle = lerpAngle(state.angle, rawAngle, ANGLE_SMOOTHING);
 }

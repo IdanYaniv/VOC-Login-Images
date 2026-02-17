@@ -16,13 +16,18 @@ import {
 
 // --- Motion constants ---
 const HOVER_RADIUS = 120; // px in viewBox coords
-const HOVER_OPACITY_BOOST = 0.2;
-const HOVER_STROKE_BOOST = 0.8;
+const HOVER_STROKE_BOOST = 1.5;
 
-// Rounded rectangle indicator dimensions
-const INDICATOR_WIDTH = 8 * 1.12;
-const INDICATOR_HEIGHT = 4 * 1.12;
-const INDICATOR_RX = 1.5 * 1.12;
+// Van indicator dimensions: 4.5px wide × 13.5px long
+const INDICATOR_WIDTH = 13.5;
+const INDICATOR_HEIGHT = 4.5;
+const INDICATOR_RX = 2;
+
+// Hover reveal colors — randomly assigned per route
+const REVEAL_COLORS = ['#FF80A1', '#2CBF8B', '#9C8FFF', '#53D5DB', '#FFCF54', '#00A8E2', '#FF9142'];
+
+// Pre-assign a reveal color to each route (deterministic based on index)
+const routeRevealColors = animatedRoutes.map((_, i) => REVEAL_COLORS[i % REVEAL_COLORS.length]);
 
 export function LivingServiceMap() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -149,7 +154,8 @@ export function LivingServiceMap() {
 
       // Update hover effects (only on animated routes)
       const mouse = mouseRef.current;
-      for (const route of animatedRoutes) {
+      for (let i = 0; i < animatedRoutes.length; i++) {
+        const route = animatedRoutes[i];
         const el = routeElsRef.current.get(route.id);
         if (!el) continue;
 
@@ -157,21 +163,31 @@ export function LivingServiceMap() {
           const pathLength = el.getTotalLength();
           let minDist = Infinity;
           const samples = 15;
-          for (let i = 0; i <= samples; i++) {
-            const pt = el.getPointAtLength((i / samples) * pathLength);
+          for (let s = 0; s <= samples; s++) {
+            const pt = el.getPointAtLength((s / samples) * pathLength);
             const d = distance(mouse.x, mouse.y, pt.x, pt.y);
             if (d < minDist) minDist = d;
           }
 
           const influence = getInfluence(minDist, HOVER_RADIUS);
-          const targetOpacity = route.baseOpacity + influence * HOVER_OPACITY_BOOST;
-          const targetStroke = route.strokeWidth + influence * HOVER_STROKE_BOOST;
 
-          el.style.strokeOpacity = String(targetOpacity);
-          el.style.strokeWidth = `${targetStroke}px`;
+          if (influence > 0) {
+            // Stroke width boost
+            const targetStroke = route.strokeWidth + influence * HOVER_STROKE_BOOST;
+            el.style.strokeWidth = `${targetStroke}px`;
+
+            // Color reveal — transition from #00A8E2 to the route's reveal color
+            el.style.stroke = routeRevealColors[i];
+            el.style.strokeOpacity = String(route.baseOpacity + influence * 0.5);
+          } else {
+            el.style.strokeWidth = "";
+            el.style.stroke = "";
+            el.style.strokeOpacity = "";
+          }
         } else {
-          el.style.strokeOpacity = "";
           el.style.strokeWidth = "";
+          el.style.stroke = "";
+          el.style.strokeOpacity = "";
         }
       }
 
@@ -194,7 +210,7 @@ export function LivingServiceMap() {
   }, [prefersReducedMotion]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#E8F4FF]">
+    <div className="relative h-full w-full overflow-hidden bg-[#E1EFFF]">
       {/* Static map background (full Map.svg rendered as image) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -214,12 +230,12 @@ export function LivingServiceMap() {
       >
         <defs>
           <radialGradient id="hover-glow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#00A8E2" stopOpacity="0.06" />
+            <stop offset="0%" stopColor="#00A8E2" stopOpacity="0.04" />
             <stop offset="100%" stopColor="#00A8E2" stopOpacity="0" />
           </radialGradient>
         </defs>
 
-        {/* Animated route paths (invisible — used for path following + hover detection) */}
+        {/* Animated route paths — visible with wider stroke so vans fit on road */}
         {animatedRoutes.map((route) => (
           <path
             key={route.id}
@@ -228,18 +244,18 @@ export function LivingServiceMap() {
             fill="none"
             stroke={route.strokeColor}
             strokeWidth={route.strokeWidth}
-            strokeOpacity={0}
+            strokeOpacity={route.baseOpacity}
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeMiterlimit={10}
             style={{
               transition:
-                "stroke-opacity 200ms cubic-bezier(0, 0, 0.2, 1), stroke-width 200ms cubic-bezier(0, 0, 0.2, 1)",
+                "stroke 200ms cubic-bezier(0, 0, 0.2, 1), stroke-width 200ms cubic-bezier(0, 0, 0.2, 1), stroke-opacity 200ms cubic-bezier(0, 0, 0.2, 1)",
             }}
           />
         ))}
 
-        {/* Hover glow circle */}
+        {/* Hover glow circle (subtle) */}
         <circle
           ref={glowRef}
           r={HOVER_RADIUS}
@@ -251,7 +267,7 @@ export function LivingServiceMap() {
           }}
         />
 
-        {/* Moving indicators (rounded rectangles) */}
+        {/* Moving indicators (rounded rectangles — 6px wide × 15px long) */}
         {!prefersReducedMotion &&
           indicators.map((ind) => (
             <g
@@ -267,7 +283,7 @@ export function LivingServiceMap() {
                 height={INDICATOR_HEIGHT}
                 rx={INDICATOR_RX}
                 ry={INDICATOR_RX}
-                fill="#00A8E2"
+                fill="#009AD9"
               />
             </g>
           ))}
