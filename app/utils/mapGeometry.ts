@@ -42,7 +42,7 @@ export const animatedRoutes: RouteDef[] = [
     baseOpacity: 0.38,
     strokeWidth: 2.5,
     category: 'highway',
-    stopNodes: [0.28, 0.55, 0.78],
+    stopNodes: [], // corridor route — speed-only variation, no stops
     speedMultiplier: 1.4,
   },
   {
@@ -74,7 +74,7 @@ export const animatedRoutes: RouteDef[] = [
     baseOpacity: 0.38,
     strokeWidth: 2.5,
     category: 'arterial',
-    stopNodes: [0.25, 0.58, 0.82],
+    stopNodes: [], // corridor route — speed-only variation, no stops
     speedMultiplier: 1.0,
   },
   {
@@ -156,7 +156,7 @@ export const animatedRoutes: RouteDef[] = [
     baseOpacity: 0.38,
     strokeWidth: 2.5,
     category: 'local',
-    stopNodes: [0.28, 0.58, 0.85],
+    stopNodes: [], // corridor route — speed-only variation, no stops
     speedMultiplier: 0.7,
   },
   {
@@ -166,7 +166,7 @@ export const animatedRoutes: RouteDef[] = [
     baseOpacity: 0.38,
     strokeWidth: 2.5,
     category: 'local',
-    stopNodes: [0.22, 0.5, 0.75],
+    stopNodes: [], // corridor route — speed-only variation, no stops
     speedMultiplier: 0.7,
   },
   {

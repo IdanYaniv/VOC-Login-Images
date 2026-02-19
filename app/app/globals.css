@@ -128,11 +128,14 @@
 }
 
 @keyframes tile-reveal {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  0%   { opacity: 0; }
+  20%  { opacity: 1; }
+  75%  { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 .tile-reveal {
   background: #F7F8FA;
-  animation: tile-reveal 0.25s ease-out forwards;
+  opacity: 0;
+  animation: tile-reveal 0.4s ease-in-out forwards;
 }

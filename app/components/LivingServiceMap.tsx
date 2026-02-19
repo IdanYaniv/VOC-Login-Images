@@ -45,13 +45,13 @@ export function LivingServiceMap() {
     () =>
       Array.from({ length: 64 }, (_, i) => ({
         key: i,
-        delay: Math.random() * 1.45, // stagger 0–1.45s; last tile gone by 1.7s
+        delay: Math.random() * 0.9, // stagger 0–0.9s; last tile gone by 1.3s
       })),
     []
   );
   const [introVisible, setIntroVisible] = useState(true);
   useEffect(() => {
-    const t = setTimeout(() => setIntroVisible(false), 1750);
+    const t = setTimeout(() => setIntroVisible(false), 1350);
     return () => clearTimeout(t);
   }, []);
 
