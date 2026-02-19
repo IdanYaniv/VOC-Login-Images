@@ -157,11 +157,13 @@ export function getInfluence(dist: number, radius: number): number {
 /**
  * Update a single indicator's state machine for one frame.
  * Mutates state in place for performance (no allocations per frame).
+ * allowStop: when false, skips the stopped phase (used to cap concurrent stops).
  */
 export function updateIndicator(
   state: IndicatorState,
   pathEl: SVGPathElement,
-  dt: number
+  dt: number,
+  allowStop: boolean = true
 ): void {
   const effectiveSpeed = state.baseSpeed / state.speedMultiplier;
 
@@ -207,11 +209,18 @@ export function updateIndicator(
 
       // Transition to stopped when deceleration completes
       if (state.stateProgress >= 1) {
-        state.motionState = 'stopped';
-        state.stateProgress = 0;
-        // Don't snap — let the indicator stop wherever it naturally ended up
-        state.stopDuration = STOP_DURATIONS[Math.floor(Math.random() * STOP_DURATIONS.length)];
-        state.stopTimer = 0;
+        if (allowStop) {
+          state.motionState = 'stopped';
+          state.stateProgress = 0;
+          // Don't snap — let the indicator stop wherever it naturally ended up
+          state.stopDuration = STOP_DURATIONS[Math.floor(Math.random() * STOP_DURATIONS.length)];
+          state.stopTimer = 0;
+        } else {
+          // Too many vans already stopped — skip this stop, resume immediately
+          state.motionState = 'accelerating';
+          state.stateProgress = 0;
+          state.currentStopIndex++;
+        }
       }
       break;
     }

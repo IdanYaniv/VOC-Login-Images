@@ -126,3 +126,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes map-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.map-fade-in {
+  animation: map-fade-in 1.2s ease-in forwards;
+}

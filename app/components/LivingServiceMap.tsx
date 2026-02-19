@@ -73,6 +73,11 @@ export function LivingServiceMap() {
   useEffect(() => {
     indicatorStatesRef.current = indicators.map((ind) => {
       const route = animatedRoutes.find((r) => r.id === ind.routeId);
+      const stopNodes = route?.stopNodes || [];
+      // Start tracking from the first stop node that is ahead of startOffset.
+      // Vans past earlier stops should not all converge at stop index 0.
+      const firstAhead = stopNodes.findIndex((s) => s > ind.startOffset);
+      const currentStopIndex = firstAhead === -1 ? stopNodes.length : firstAhead;
       return {
         id: ind.id,
         routeId: ind.routeId,
@@ -86,8 +91,8 @@ export function LivingServiceMap() {
         angle: 0,
         motionState: 'cruising' as const,
         stateProgress: 0,
-        stopNodes: route?.stopNodes || [],
-        currentStopIndex: 0,
+        stopNodes,
+        currentStopIndex,
         stopDuration: 0,
         stopTimer: 0,
         jitterSeed: Math.random() * Math.PI * 2,
@@ -133,12 +138,20 @@ export function LivingServiceMap() {
       const dt = Math.min((time - lastTime) / 1000, 0.1); // cap dt to avoid jumps
       lastTime = time;
 
+      // Cap simultaneous stops to prevent the "everyone stopped" visual glitch
+      const MAX_CONCURRENT_STOPS = 4;
+      const stoppedCount = indicatorStatesRef.current.filter(
+        (s) => s.motionState === 'stopped'
+      ).length;
+
       // Update indicator state machines
       for (const state of indicatorStatesRef.current) {
         const pathEl = pathRefs.current.get(state.routeId);
         if (!pathEl) continue;
 
-        updateIndicator(state, pathEl, dt);
+        // Already stopped vans always stay stopped; new stops limited by cap
+        const allowStop = state.motionState === 'stopped' || stoppedCount < MAX_CONCURRENT_STOPS;
+        updateIndicator(state, pathEl, dt, allowStop);
 
         // Update DOM directly
         const el = indicatorElsRef.current.get(state.id);
@@ -210,7 +223,7 @@ export function LivingServiceMap() {
   }, [prefersReducedMotion]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#F7F8FA]">
+    <div className="map-fade-in relative h-full w-full overflow-hidden bg-[#F7F8FA]">
       {/* Static map background (full Map.svg rendered as image) */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
