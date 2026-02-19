@@ -249,11 +249,11 @@ export const animatedRoutes: RouteDef[] = [
 // Some routes have 2 vans for organic density.
 
 export const indicators: IndicatorDef[] = [
-  // Highways (fast, 2 vans on highway-1)
-  { id: 'van-1',  routeId: 'highway-1',  baseSpeed: 48, size: 3.5, opacity: 1.0, startOffset: 0.1 },
-  { id: 'van-2',  routeId: 'highway-2',  baseSpeed: 50, size: 3.2, opacity: 1.0, startOffset: 0.3 },
-  { id: 'van-3',  routeId: 'highway-3',  baseSpeed: 50, size: 3.4, opacity: 1.0, startOffset: 0.6 },
-  { id: 'van-18', routeId: 'highway-1',  baseSpeed: 52, size: 3.3, opacity: 1.0, startOffset: 0.55 },
+  // Highways (fast, 2 vans on highway-1) — baseSpeed ×1.2 = 20% slower
+  { id: 'van-1',  routeId: 'highway-1',  baseSpeed: 58, size: 3.5, opacity: 1.0, startOffset: 0.1 },
+  { id: 'van-2',  routeId: 'highway-2',  baseSpeed: 60, size: 3.2, opacity: 1.0, startOffset: 0.3 },
+  { id: 'van-3',  routeId: 'highway-3',  baseSpeed: 60, size: 3.4, opacity: 1.0, startOffset: 0.6 },
+  { id: 'van-18', routeId: 'highway-1',  baseSpeed: 62, size: 3.3, opacity: 1.0, startOffset: 0.55 },
 
   // Arterials (medium)
   { id: 'van-4',  routeId: 'arterial-1', baseSpeed: 60, size: 3.0, opacity: 1.0, startOffset: 0.05 },
